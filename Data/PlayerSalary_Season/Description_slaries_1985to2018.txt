@@ -1,0 +1,11 @@
+Source: https://data.world/datadavis/nba-salaries
+- Scraped from Basketball-reference (https://www.basketball-reference.com/)
+
+Fields: 
+1.) league
+2.) plaery_id
+3.) salary
+4.) season
+5.) season_end
+6.) season_start
+7.) team

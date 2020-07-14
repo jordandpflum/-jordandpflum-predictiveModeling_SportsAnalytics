@@ -1,0 +1,26 @@
+Source: https://data.world/datadavis/nba-salaries/workspace/file?filename=players.csv
+
+Fields:
+1.) id
+2.) birthdate
+3.) birthplace
+4.) career_ast
+5.) career_fg
+6.) career_ft
+7.) career_g
+8.) career_per
+9.) career_pts
+10.) career_trb
+11.) career_ws
+12.) career_efg
+13.) college
+14.) draft_pick
+15.) draft_round
+16.) draft_team
+17.) draft_year
+18.) height
+19.) highschool
+20.) name
+21.) position
+22.) shoots
+23.) weight

@@ -1,0 +1,64 @@
+Source: https://www.kaggle.com/drgilermo/nba-players-stats?select=Seasons_Stats.csv
+- Scraped from Basketball-reference (https://www.basketball-reference.com/)
+
+Fields: 
+1.) COLID: 
+2.) Year: Year that the season occurred. Since the NBA season is split over two calendar years, the year given is the last year for that season. For example, the year for the 1999-00 season would be 2000.
+3.) Player: Player Name
+4.) Pos: Position of Player
+5.) Age: Player age on February 1 of the given season.
+6.) Tm: Team
+7.) G: Games
+8.) GS: Games Started (available since the 1982 season)
+9.) MP: Minutes Played (available since the 1951-52 season)
+10.) PER: Player Efficiency Rating (available since the 1951-52 season); PER is a rating developed by ESPN.com columnist John Hollinger. In John's words, "The PER sums up all a player's positive accomplishments, subtracts the negative accomplishments, and returns a per-minute rating of a player's performance." Please see the article Calculating PER for more information.
+11.) TS_perc: True Shooting Percentage; the formula is PTS / (2 * TSA). True shooting percentage is a measure of shooting efficiency that takes into account field goals, 3-point field goals, and free throws.
+12.) 3PAr: 3-Point Attempt Rate, the formula is (3PA/FGA) and is a meausre of what percentage of a player's shots come from long distance
+13.) FTr: Free Throw Attempt Rate, the formula is (FTA/FGA) and is a meausre of what percentage of a player's shots come from the free throw line
+14.) ORB_perc: Offensive Rebound Percentage (available since the 1970-71 season in the NBA); the formula is 100 * (ORB * (Tm MP / 5)) / (MP * (Tm ORB + Opp DRB)). Offensive rebound percentage is an estimate of the percentage of available offensive rebounds a player grabbed while he was on the floor.
+15.) DRB_perc: Defensive Rebound Percentage (available since the 1970-71 season in the NBA); the formula is 100 * (DRB * (Tm MP / 5)) / (MP * (Tm DRB + Opp ORB)). Defensive rebound percentage is an estimate of the percentage of available defensive rebounds a player grabbed while he was on the floor.
+16.) TRB_perc: Usage Percentage (available since the 1977-78 season in the NBA); the formula is 100 * ((FGA + 0.44 * FTA + TOV) * (Tm MP / 5)) / (MP * (Tm FGA + 0.44 * Tm FTA + Tm TOV)). Usage percentage is an estimate of the percentage of team plays used by a player while he was on the floor.
+17.) AST_perc:  Assist Percentage (available since the 1964-65 season in the NBA); the formula is 100 * AST / (((MP / (Tm MP / 5)) * Tm FG) - FG). Assist percentage is an estimate of the percentage of teammate field goals a player assisted while he was on the floor.
+18.) STL_perc: Steal Percentage (available since the 1973-74 season in the NBA); the formula is 100 * (STL * (Tm MP / 5)) / (MP * Opp Poss). Steal Percentage is an estimate of the percentage of opponent possessions that end with a steal by the player while he was on the floor.
+19.) BLK_perc: Block Percentage (available since the 1973-74 season in the NBA); the formula is 100 * (BLK * (Tm MP / 5)) / (MP * (Opp FGA - Opp 3PA)). Block percentage is an estimate of the percentage of opponent two-point field goal attempts blocked by the player while he was on the floor.
+20.) TOV_perc: Turnover Percentage (available since the 1977-78 season in the NBA); the formula is 100 * TOV / (FGA + 0.44 * FTA + TOV). Turnover percentage is an estimate of turnovers per 100 plays.
+21.) USG_perc: Usage Percentage (available since the 1977-78 season in the NBA); the formula is 100 * ((FGA + 0.44 * FTA + TOV) * (Tm MP / 5)) / (MP * (Tm FGA + 0.44 * Tm FTA + Tm TOV)). Usage percentage is an estimate of the percentage of team plays used by a player while he was on the floor.
+22.) blanl: 
+23.) OWS: Offensive Win Shares; please see the article Calculating Win Shares for more information.
+24.) DWS: Defensive Win Shares; please see the article Calculating Win Shares for more information.
+25.) WS: Win Shares; an estimate of the number of wins contributed by a player. Please see the article Calculating Win Shares for more information.
+26.) WS/48: Win Shares Per 48 Minutes (available since the 1951-52 season in the NBA); an estimate of the number of wins contributed by the player per 48 minutes (league average is approximately 0.100). Please see the article Calculating Win Shares for more information.
+27.) blank2: 
+28.) OBPM: 
+29.) DBPM: 
+30.) BPM: Box Plus/Minus (available since the 1973-74 season in the NBA); a box score estimate of the points per 100 possessions that a player contributed above a league-average player, translated to an average team. Please see the article About Box Plus/Minus (BPM) for more information.
+31.) VORP: Value Over Replacement Player (available since the 1973-74 season in the NBA); a box score estimate of the points per 100 TEAM possessions that a player contributed above a replacement-level (-2.0) player, translated to an average team and prorated to an 82-game season. Multiply by 2.70 to convert to wins over replacement. Please see the article About Box Plus/Minus (BPM) for more information.
+32.) FG: Field Goals (includes both 2-point field goals and 3-point field goals)
+33.) FGA: Field Goal Attempts (includes both 2-point field goal attempts and 3-point field goal attempts)
+34.) FG_perc: Field Goal Percentage; the formula is FG / FGA.
+35.) 3P: 3-Point Field Goals (available since the 1979-80 season in the NBA)
+36.) 3PA: 3-Point Field Goal Attempts (available since the 1979-80 season in the NBA)
+37.) 3P_perc: 3-Point Field Goal Percentage (available since the 1979-80 season in the NBA); the formula is 3P / 3PA.
+38.) 2P: 2-Point Field Goals
+39.) 2PA: 2-Point Field Goal Attempts
+40.) 2P_perc: 2-Point Field Goal Percentage; the formula is 2P / 2PA
+41.) eFG_perc: Effective Field Goal Percentage; the formula is (FG + 0.5 * 3P) / FGA. This statistic adjusts for the fact that a 3-point field goal is worth one more point than a 2-point field goal. For example, suppose Player A goes 4 for 10 with 2 threes, while Player B goes 5 for 10 with 0 threes. Each player would have 10 points from field goals, and thus would have the same effective field goal percentage (50%).
+42.) FT: Free Throws
+43.) FTA: Free Throw Attempts
+44.) FT_perc: Free Throw Percentage; the formula is FT / FTA.
+45.) ORB: Offensive Rebounds (available since the 1973-74 season in the NBA)
+46.) DRB: Defensive Rebounds (available since the 1973-74 season in the NBA)
+47.) TRB: Total Rebounds (available since the 1950-51 season)
+48.) AST: Assists
+49.) STL: Steals (available since the 1973-74 season in the NBA)
+50.) BLK: Blocks (available since the 1973-74 season in the NBA)
+51.) TOV: Turnovers (available since the 1977-78 season in the NBA)
+52.) PF: Personal Fouls
+53.) PTS: Points
+
+
+
+
+
+
+
