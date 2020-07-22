@@ -1,5 +1,5 @@
-rm(list = ls())
-data <- read.csv("C:/Users/timot/Documents/Github/predictiveModelingSportsAnalytics/2017_player_salary_and_metrics.csv", header = T)
+#rm(list = ls())
+#data <- read.csv("C:/Users/timot/Documents/Github/predictiveModelingSportsAnalytics/2017_player_salary_and_metrics.csv", header = T)
 
 # This code uses stepwide-regression to find the best variables for multiple linear regression
 
