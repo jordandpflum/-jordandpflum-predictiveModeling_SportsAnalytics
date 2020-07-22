@@ -24,12 +24,28 @@ ageGroupedDataframe_27_30 <- createAgeGroupingDataframe(completeDataframe, ageGr
 ageGroupedDataframe_31_35 <- createAgeGroupingDataframe(completeDataframe, ageGroup='31 - 35')
 ageGroupedDataframe_over35 <- createAgeGroupingDataframe(completeDataframe, ageGroup='>35')
 
+
+# Create X-DF
+source("DataWrangling/createPartialDataframe.R")
+variables = c("Pos", "Age", "G", "GS", "MP", "PTS", "AST", "TRB", "ORB", "DRB",
+              "STL", "BLK", "TOV", "PF", "FG", "FGA", "X2P", "X2PA", "X3P",
+              "FT", "FTA", "PER", "ORB_perc", "DRB_perc", "TRB_perc", "AST_perc",
+              "STL_perc", "BLK_perc", "TOV_perc", "USG_perc", "OWS", "DWS",
+              "WS", "WS_48", "OBPM", "DBPM", "BPM", "VORP", "TSA", "TS_perc",
+              "X3P_perc", "X2P_perc", "eFG_perc", "FT_perc")
+xDF = createParitalDataframe(df = completeDataframe, colNames = variables)
+
+# Create Y-DF
+variables = c("Salary")
+yDF = createParitalDataframe(df = completeDataframe, colNames = variables)
+
 # Variable Selection
 # Group (position)
 
 # Group (etc.)
 
 # No Grouping
+
 
 
 # Prediction
