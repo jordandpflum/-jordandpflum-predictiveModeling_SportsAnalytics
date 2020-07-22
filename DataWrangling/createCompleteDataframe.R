@@ -24,6 +24,8 @@ createCompleteDataframe <- function(playerSalaryData, playerSeasonMetricsData){
                                              by = "Player", 
                                              all.x=TRUE
                                              )
+  # Remove NAs (Players in metrics but not in salary dataset)
+  completeDataframe<-completeDataframe[complete.cases(completeDataframe), ]
   
   return(completeDataframe)
 }
