@@ -50,20 +50,6 @@ cleanPlayerSeasonMetrics <- function(playerSeasonMetrics, subsetYear){
   playerSeasonMetrics_subset <- playerSeasonMetrics %>% 
     filter(Year==subsetYear)
   
-  # Remove NAs (should be no NAs, just a precaution)
-  if(rmNA){
-    # Count NAs
-    countNAs<-FALSE
-    if(countNAs){
-      totalNAs <- 0
-      for(col in names(playerSeasonMetrics_subset)){
-        totalNAs <- totalNAs + sum(is.na(playerSeasonMetrics_subset$col))
-      }
-      print(totalNAs)
-    }
-    na.omit(playerSeasonMetrics_subset)
-  }
-  
   # Consolidate Duplicate PlayerIDs by sum(Salary)
   playerSeasonMetrics_subset <- playerSeasonMetrics_subset %>% 
     group_by(Player) %>% 
