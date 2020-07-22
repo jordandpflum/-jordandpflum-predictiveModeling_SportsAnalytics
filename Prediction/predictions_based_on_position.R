@@ -2,39 +2,36 @@ rm(list=ls())
 library(kknn) ## knn library
 library('fastDummies')
 library(leaps)
-player_2017_salary_metrics<-read.csv("../2017_player_salary_and_metrics.csv", stringsAsFactors = FALSE)
+library(docstring)
+player_2017_salary_metrics<-read.csv("2017_player_salary_and_metrics.csv", stringsAsFactors = FALSE)
 
-Perform_Linear_regression <- function(pos_dataset){
+Perform_Linear_regression <- function(pos_dataset, name){
     #' @description This function performs a linear regression using
     #' the most relevant variables found by stepwise algorithm
     #' on the different datasets provided 
     #'
     #' 
     #' @param pos_dataset dataframe. 
+    #' @param name Identification for dataset
     pos_dataset[,c("Pos")] <- list(NULL)
     set.seed(123)
     n=dim(pos_dataset)[1]
     ind <- sample(1:n,size=n*0.80,replace = FALSE)
     train = pos_dataset[ind,]
     test = pos_dataset[-ind,]
-    print(dim(train))
     model_base <- lm(salary ~ 1 , data= train)  # base intercept only model
     model_all <- lm(salary ~ . , data= train) # full model with all predictors
-    stepMod <- step(model_base, scope = list(lower = model_base, upper = model_all), direction = "both", trace = 0, steps = 1000)  # perform step-wise algorithm
+    stepMod <- step(model_base, scope = list(lower = model_base, upper = model_all), direction = "both", trace = 0, steps = 1000, k=log(length(ind)))  # perform step-wise algorithm
     shortlistedVars <- names(unlist(stepMod[[1]])) # get the shortlisted variable.
     shortlistedVars <- shortlistedVars[!shortlistedVars %in% "(Intercept)"]  # remove intercept
     myForm <- as.formula(paste("salary ~ ", paste (shortlistedVars, collapse=" + "), sep=""))
     len = length(shortlistedVars)
-    #Conditional here because PF dataset has more predictors than observations
-    if(len <40){
-        model <- lm(myForm,data = train)
-        print(summary(model))
-    }
-    else{
-        #For PF_dataset using the best predictors using entire datset
-        model <- lm(salary ~ PTS+Age+Tm_MIN+GS+DRB_perc+PF+Tm_POR+Tm_MIA+Tm_UTA+Tm_DEN+AST+TOV+TS_perc,data = train)
-        print(summary(model))
-    }
+    model <- lm(myForm,data = train)
+    y.hat <- predict(model,newdata = test)
+    MSE <- mean((test$salary-y.hat)**2)
+    print(sqrt(MSE))
+    print(name)
+
     
     
 }
@@ -192,12 +189,12 @@ cleanPlayerSalary <- function(player_csv){
     Perform_predictions(SF_dataset, 5, "Small Forward knn")
     Perform_predictions(PG_dataset, 5, "Point Guard knn")
     #Perform linear regression
-    Perform_Linear_regression(player_csv)
-    Perform_Linear_regression(SG_dataset)
-    Perform_Linear_regression(C_dataset)
-    Perform_Linear_regression(PF_dataset)
-    Perform_Linear_regression(SF_dataset)
-    Perform_Linear_regression(PG_dataset)
+    Perform_Linear_regression(player_csv, "Overall")
+    Perform_Linear_regression(SG_dataset, "Shooting Guard")
+    Perform_Linear_regression(C_dataset, "Center")
+    Perform_Linear_regression(PF_dataset, "Power Forward")
+    Perform_Linear_regression(SF_dataset, "Small Forward")
+    Perform_Linear_regression(PG_dataset, "Point Guard")
     
 
     return (player_csv)
