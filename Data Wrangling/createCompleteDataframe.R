@@ -5,7 +5,7 @@ createCompleteDataframe <- function(){
   #'
   #' @return Complete Dataframe
   #' 
-
+  
   # Load Data (Player Salary: 2017)
   playerSalay_2017<-read.csv("Data/PlayerSalary_Season/salary_2017.csv", stringsAsFactors = FALSE)
   
@@ -31,6 +31,7 @@ createCompleteDataframe <- function(){
   return(completeDataframe)
 }
 
+test <- createCompleteDataframe()
 
 
 
