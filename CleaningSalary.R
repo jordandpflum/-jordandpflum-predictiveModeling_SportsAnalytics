@@ -1,98 +1,58 @@
 library(dplyr)
+library(docstring)
 
 
-# Clear Workspace
-#rm(list=ls())
 
-# Load Data (Player Salary: 1985-2018)
-player_salary_1985_2018<-read.csv("Data/PlayerSalary_Season/salaries_1985to2018.csv", stringsAsFactors = FALSE)
-
-cleanPlayerSalary <- function(playerSalary_csv, subsetYear, rmNA=TRUE, rmDuplicates=TRUE, exportCSV=FALSE){
-  # Subset Salary Data (Year = subsetYear)
-  playerSalary_subset <- subset(player_salary_1985_2018,season_start==subsetYear)
-  # Remove NAs
-  if(rmNA){
-    # Count NAs
-    countNAs<-FALSE
-    if(countNAs){
-      totalNAs <- 0
-      for(col in names(playerSalary_subset)){
-        totalNAs <- totalNAs + sum(is.na(playerSalary_subset$col))
-      }
-    }
-    na.omit(playerSalary_subset)
-  }
+cleanPlayerSalary <- function(playerSalary){
+  #' @description This function cleans the salary CSV, dealing with
+  #' player's who were traded
+  #'
+  #' 
+  #' @param playerSalary dataframe. Read in salary_2017.csv file
+  #' @return dataframe. A clean and complete salaries dataframe
+  #' 
+  
+  
   # Consolidate Duplicate PlayerIDs by sum(Salary)
-  playerSalary_subset <- playerSalary_subset %>% 
-    group_by(player_id) %>% 
-    summarise(salary = sum(salary))
+  playerSalary_subset <- playerSalary %>% 
+    group_by(Player) %>% 
+    summarise(Salary = sum(Salary))
   
   
   # Return Clean Dataframe
   return(data.frame(playerSalary_subset))
 }
-cleanPlayerSalary_2017 <- cleanPlayerSalary(playerSalary_csv=player_salary_1985_2018,
-                                   subsetYear=2017, 
-                                   rmNA=TRUE, 
-                                   rmDuplicates=TRUE, 
-                                   exportCSV=FALSE
-                                   )
 
-# Confirm Duplicates are Gone
-cleanPlayerSalary_2017[duplicated(cleanPlayerSalary_2017$player_id),]
+# Testing
 
-
-# rm(list=ls())
-# player_salary_1985_2018<-read.csv("D:/rs/Data/PlayerSalary_Season/salaries_1985to2018.csv", stringsAsFactors = FALSE)
-# edit <- subset(player_salary_1985_2018,season_start==2017)
-# #write.csv(edit,"D:/rs/Data/PlayerSalary_Season/salaries_2017.csv")
-# ## Find null value in the table
-# is.na(edit)
-# mydata[!complete.cases(mydata),]
+# # Load Data (Player Salary: 1985-2018)
+# playerSalay_2017<-read.csv("Data/PlayerSalary_Season/salary_2017.csv", stringsAsFactors = FALSE)
 # 
-# ## Find duplicates because they were traded
-# playerSalary_2017[duplicated(playerSalary_2017$player_id),]
-# ## Find duplicate IDs
-# count=1
-# countd=1
-# duplist<-c()
-# while (count<551){
-#   if (dup$player_id[countd]==playerSalary_2017$player_id[count]){
-#     duplist<- c(duplist,count)
-#     countd=countd+1
-#   }
-#   count=count+1
+# cleanPlayerSalary_2017 <- cleanPlayerSalary(playerSalary=playerSalay_2017)
+# 
+# # Confirm Duplicates are Gone
+# cleanPlayerSalary_2017[duplicated(cleanPlayerSalary_2017$player_id),]
+
+
+
+
+# 
+# cleanPlayerSalary2 <- function(playerSalary, subsetYear, rmNA=TRUE, rmDuplicates=TRUE, exportCSV=FALSE){
+#   
+#   # Merge Dataframes to get player name
+#   player_careerMetrics<-read.csv("Data/PlayerSalary_Season/players_career_metrics.csv", stringsAsFactors = FALSE)
+#   playerSalary <- merge(x = playerSalary, y = player_careerMetrics[ , c("player_id", "Player")], by = "player_id", all.x=TRUE)
+#   
+#   # Subset Salary Data (Year = subsetYear)
+#   playerSalary_subset <- playerSalary %>% 
+#     filter(season_start==2017)
+#   
+#   # Consolidate Duplicate PlayerIDs by sum(Salary)
+#   playerSalary_subset <- playerSalary_subset %>% 
+#     group_by(Player) %>% 
+#     summarise(salary = sum(salary))
+#   
+#   
+#   # Return Clean Dataframe
+#   return(data.frame(playerSalary_subset))
 # }
-# ## Find unduplicated duplicates IDs
-# dupn=dup$player_id[!duplicated(dup$player_id)]
-# ## Find the amount of total salary of each ID
-# ama<-c()
-# count=1
-# countd=1
-# amount=0
-# while (countd<30){
-#   while (count<552){
-#     if (playerSalary_2017$player_id[count]==dupn[countd]){
-#       amount=amount+playerSalary_2017$salary[count]
-#     }
-#     count=count+1
-#   }
-#   ama<-c(ama,amount)
-#   countd=countd+1
-#   amount=0
-#   count=1
-# }
-# ##Add the total salary to the IDs
-# count=1
-# countd=1
-# while (count<552){
-#   while (countd<30){
-#     if (playerSalary_2017$player_id[count]==dupn[countd]){
-#       playerSalary_2017$salary[count]=ama[countd]
-#     }
-#   countd=countd+1
-#   }
-#   count=count+1
-# }
-# ##Delete all duplicates
-# playerSalary_2017n=playerSalary_2017[!duplicated(playerSalary_2017$player_id),]
