@@ -2,7 +2,7 @@ rm(list=ls())
 library(kknn) ## knn library
 library('fastDummies')
 library(leaps)
-player_2017_salary_metrics<-read.csv("2017_player_salary_and_metrics.csv", stringsAsFactors = FALSE)
+player_2017_salary_metrics<-read.csv("../2017_player_salary_and_metrics.csv", stringsAsFactors = FALSE)
 
 Perform_Linear_regression <- function(pos_dataset){
     #' @description This function performs a linear regression using
