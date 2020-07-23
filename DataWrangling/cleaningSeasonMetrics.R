@@ -147,7 +147,40 @@ cleanPlayerSeasonMetrics <- function(playerSeasonMetrics, subsetYear){
   return(data.frame(playerSeasonMetrics_subset))
 }
 
-# Testing
+cleanPlayerSeasonMetricsTotal <- function(playerSeasonMetrics, year_start, year_end){
+  #' @description This function cleans the salary CSV, dealing with
+  #' player's who were traded
+  #'
+  #' 
+  #' @param playerSalary dataframe. Read in salary_2017.csv file
+  #' @return dataframe. A clean and complete salaries dataframe
+  #' 
+  
+  # Create Empty Dataframe
+  playerMetricsSubset <- data.frame(matrix(ncol = 51, nrow = 0))
+  
+  colnames(playerMetricsSubset) <- c("Player", "Year", "Pos", "Age", "Tm", "G", "GS", "MP", "PTS", "AST", "TRB", "ORB", 
+                                    "DRB", "STL", "BLK", "TOV", "PF", "FG", "FGA", "X2P", "X2PA", "X3P", "X3PA",
+                                    "FT", "FTA", "PER", "ORB_perc", "DRB_perc", "TRB_perc", "AST_perc", 
+                                    "STL_perc", "BLK_perc", "TOV_perc", "USG_perc", "OWS", "DWS", "WS", 
+                                    "WS_48", "OBPM", "DBPM", "BPM", "VORP", "TSA", "TS_perc", "X3PAr", "FTr", 
+                                    "FG_perc", "X3P_perc", "X2P_perc", "eFG_perc", "FT_perc")
+  for(year in year_start:year_end){
+    playerMetricsSubset_temp <- cleanPlayerSeasonMetrics(playerSeasonMetrics, year)
+    playerMetricsSubset <- rbind(playerMetricsSubset, playerMetricsSubset_temp)
+    
+  }
+  
+  
+  # Return Clean Dataframe
+  return(playerMetricsSubset)
+}
+
+# # Testing
+# playerSeasonMetrics<-read.csv("Data/PlayerMetrics_Season/player_metric_season.csv", stringsAsFactors = FALSE)
+# 
+# test <- cleanPlayerSeasonMetricsTotal(playerSeasonMetrics, year_start=2010, year_end=2017)
+
 
 # # Load Data (Player Salary: 1985-2018)
 # playerSeasonMetrics<-read.csv("Data/PlayerMetrics_Season/player_metric_season.csv", stringsAsFactors = FALSE)
