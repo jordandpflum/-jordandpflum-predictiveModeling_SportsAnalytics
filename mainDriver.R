@@ -36,7 +36,7 @@ variables = c("Pos", "Age", "G", "GS", "MP", "PTS", "AST", "TRB", "ORB", "DRB",
               "WS", "WS_48", "OBPM", "DBPM", "BPM", "VORP", "TSA", "TS_perc",
               "X3P_perc", "X2P_perc", "eFG_perc", "FT_perc")
 xDF = createParitalDataframe(df = completeDataframe, colNames = variables)
-colnames(XDF) <- variables
+colnames(xDF) <- variables
 
 # Create Y-DF
 variables = c("Salary")
@@ -55,6 +55,38 @@ plot(range(length((yDF))),yDF)
 
 # No Grouping
 
+library(MASS)
+
+# Dummy for position
+pos <- factor(xDF$Pos)
+model.1 <- model.matrix(~pos)[,-c(1)]
+posC <- ifelse(xDF$Pos == "C",1,0)
+pos.1 <- cbind(C,model.1)
+edit <- cbind(xDF,pos.1)[,-c(1)]
+
+
+# Create data frame (for easier use)
+
+t.dta <- cbind(edit,yDF)
+colnames(t.dta)[length(colnames(t.dta))] = "salary"
+
+
+set.seed(40)
+tr <- sample(1:nrow(edit),2400)
+
+train <- t.dta[tr,]
+test <- t.dta[-tr,]
+
+model <- lm(salary~.,data = train)
+steps <- stepAIC(model,direction = "both",k = log(nrow(t.dta)))
+
+summary(steps)
+# adj r of .5453
+
+y.hat <- predict(steps,newdata = test)
+MSE.BIC <- mean((test$salary-y.hat)**2)
+sqrt(MSE.BIC)
+# RMSE of 3.8 mil
 
 
 # Prediction
