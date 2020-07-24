@@ -10,6 +10,7 @@ playerSalaryData<-read.csv("Data/PlayerSalary_Season/salaries_1985to2018.csv", s
 playerSeasonMetricsData<-read.csv("Data/PlayerMetrics_Season/player_metric_season.csv", stringsAsFactors = FALSE)
 
 
+
 completeDataframe <- createCompleteDataframeTotal(playerSalaryData=playerSalaryData, 
                                                   playerSeasonMetricsData=playerSeasonMetricsData,
                                                   year_start=2010,
@@ -61,7 +62,7 @@ library(MASS)
 pos <- factor(xDF$Pos)
 model.1 <- model.matrix(~pos)[,-c(1)]
 posC <- ifelse(xDF$Pos == "C",1,0)
-pos.1 <- cbind(C,model.1)
+pos.1 <- cbind(posC,model.1)
 edit <- cbind(xDF,pos.1)[,-c(1)]
 
 
@@ -87,6 +88,50 @@ y.hat <- predict(steps,newdata = test)
 MSE.BIC <- mean((test$salary-y.hat)**2)
 sqrt(MSE.BIC)
 # RMSE of 3.8 mil
+
+
+# LASSO
+
+library(glmnet)
+scaled <- scale(t.dta[,-c(58)])
+scaled <- cbind(scaled,t.dta$salary)
+tr.s <- scaled[tr,]
+t.s <- scaled[-tr,]
+lasso.model <- cv.glmnet(tr.s[,-c(58)],tr.s[,c(58)],alpha = 1 )
+sqrt(lasso.model$cvm[lasso.model$lambda == lasso.model$lambda.1se])
+# 3.97 mil
+
+
+# Plot lambdas
+plot(log(lasso.model$lambda),sqrt(lasso.model$cvm),
+     main="LASSO CV (k=10)",xlab="log(lambda)",
+     ylab = "RMSE",col=4,type="b",cex.lab=1.2)
+abline(v=log(lasso.model$lambda.1se),lty=2,col=2,lwd=2)
+
+coefs.lasso <- predict(lasso.model, type = "coefficients", s = lasso.model$lambda.1se)
+coefs.lasso
+
+# Ridge 
+
+ridge.model <- cv.glmnet(tr.s[,-c(58)],tr.s[,c(58)],alpha = 0)
+sqrt(ridge.model$cvm[ridge.model$lambda == ridge.model$lambda.1se])
+#3.98 mil
+
+
+plot(log(ridge.model$lambda),sqrt(ridge.model$cvm),
+     main="LASSO CV (k=10)",xlab="log(lambda)",
+     ylab = "RMSE",col=4,type="b",cex.lab=1.2)
+abline(v=log(ridge.model$lambda.1se),lty=2,col=2,lwd=2)
+
+coefs.ridge <- predict(ridge.model, type = "coefficients", s = ridge.model$lambda.1se)
+coefs.ridge
+
+# Remove all the variables
+
+rm(list = c("edit","lasso.model","model.1","pos","MSE.BIC","posC",
+            "scaled","ridge.model","scaled.tr","t.s","t.dta","tr",
+            "train","y.hat","test","pos.1","steps","tr.s","model"))
+
 
 
 # Prediction
