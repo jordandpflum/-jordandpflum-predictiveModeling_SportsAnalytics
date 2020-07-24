@@ -49,7 +49,7 @@ createCompleteDataframeTotal <- function(playerSalaryData, playerSeasonMetricsDa
                                                                      )
   
   completeDataframe <- merge(x = cleanPlayerSeasonMetricsDataframe, 
-                             y = cleanPlayerSalayDataframe[,c("Player", "Salary", "Year")], 
+                             y = cleanPlayerSalayDataframe[,c("Player", "Salary", "salaryPercSalaryCap","Year")], 
                              by = c("Player", "Year"), 
                              all.x=TRUE
   )
