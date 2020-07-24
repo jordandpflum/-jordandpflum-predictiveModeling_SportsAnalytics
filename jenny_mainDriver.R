@@ -49,10 +49,10 @@ yDF = createParitalDataframe(df = completeDataframe, colNames = variables)
 #knn
 set.seed(12345)
 
-logSalary <- log(completeDataframe$salary) #do we want to take the log? 
+logSalary <- log(completeDataframe$Salary) #do we want to take the log? 
 n=dim(metrics)[1]
 
-ind = sample(1:n, size = 200, replace = FALSE)
+ind = sample(1:n, size = 328, replace = FALSE) #80%
 
 Y = logSalary[ind] 
 completeDataframeData = completeDataframe[ind,] 
