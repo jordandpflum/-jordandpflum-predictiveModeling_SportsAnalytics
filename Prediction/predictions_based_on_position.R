@@ -11,18 +11,24 @@ player_2017_salary_metrics<-read.csv("2017_player_salary_and_metrics.csv", strin
 
 Trees <- function(pos_dataset, name){
     pos_dataset[,c("Pos")] <- list(NULL)
+    # print(summary(pos_dataset$salaryPercSalaryCap))
     n=dim(pos_dataset)[1]
+    
+    
     set.seed(123)
     ind <- sample(1:n,size=n*0.80,replace = FALSE)
-    pos_dataset$Salary = log(pos_dataset$Salary)
     train = pos_dataset[ind,]
     test = pos_dataset[-ind,]
+    train_Year = train$Year
+    test_Year = test$Year
+    train[,c("Year")] <- list(NULL)
+    test[,c("Year")] <- list(NULL)
     p=ncol(train)-1 #Number of covariates (-1 because one column is the response)
     mtryv = c(p,round(sqrt(p))) #Number of candidate variables for each split
     ntreev = c(100,500) #Number of trees
     parmrf = expand.grid(mtryv,ntreev) #Expanding grids of different models
     colnames(parmrf)=c('mtry','ntree')
-    print(parmrf)
+    # print(parmrf)
     
     nset = nrow(parmrf) #Number of models
     olrf = rep(0,nset) #Out-of-sample loss
@@ -30,23 +36,22 @@ Trees <- function(pos_dataset, name){
     rffitv = vector('list',nset) #List of the estimated models
     
     for(i in 1:nset) {
-        cat('Model ',i,' out of ',nset,'\n')
-        temprf = randomForest(Salary~., #Formula
+        # cat('Model ',i,' out of ',nset,'\n')
+        temprf = randomForest(salaryPercSalaryCap~., #Formula
                               data=train, #Data frame
                               mtry=parmrf[i,1], #Number of candidate variables for each split
                               ntree=parmrf[i,2], #Number of trees
                               maxnodes = 15) #Maximum number of leaves (takes too much time if too big)
         ifit = predict(temprf) #In-sample prediction
         ofit=predict(temprf,newdata=test) #Out-of-sample prediction
-        olrf[i] = sum((exp(test$Salary)-exp(ofit))^2) #Out-of-sample loss
-        ilrf[i] = sum((exp(train$Salary)-exp(ifit))^2) #In-sample loss
+        olrf[i] = sum(((test$salaryPercSalaryCap)-(ofit))^2) #Out-of-sample loss
+        ilrf[i] = sum(((train$salaryPercSalaryCap)-(ifit))^2) #In-sample loss
         rffitv[[i]]=temprf #Saving the model
     }
     ilrf = round(sqrt(ilrf/nrow(train)),3) #In-sample RMSE
     olrf = round(sqrt(olrf/nrow(test)),3) #Out-of-sample RMSE
-    
     #Print losses
-    print(cbind(parmrf,ilrf, olrf))
+    # print(cbind(parmrf,ilrf, olrf))
     
     #Boosting trees
     idv = c(4,10) #tree depth
@@ -54,7 +59,7 @@ Trees <- function(pos_dataset, name){
     lamv=c(.001,.2) #Learning rates
     parmb = expand.grid(idv,ntv,lamv) #Expand the values to get different models
     colnames(parmb) = c('tdepth','ntree','lam')
-    print(parmb)
+    # print(parmb)
     
     nset = nrow(parmb) #Number of models
     olb = rep(0,nset) #Out-of-sample loss
@@ -62,8 +67,8 @@ Trees <- function(pos_dataset, name){
     bfitv = vector('list',nset) #List of the estimated models
     
     for(i in 1:nset) {
-        cat('Model ',i,'out of',nset,'\n')
-        tempboost = gbm(Salary~.,#Formula
+        # cat('Model ',i,'out of',nset,'\n')
+        tempboost = gbm(salaryPercSalaryCap~.,#Formula
                         data=train, #Data frame
                         distribution='gaussian',
                         interaction.depth=parmb[i,1], #Maximum depth of each tree
@@ -71,15 +76,41 @@ Trees <- function(pos_dataset, name){
                         shrinkage=parmb[i,3]) #Learning rate
         ifit = predict(tempboost,n.trees=parmb[i,2]) #In-sample fit
         ofit=predict(tempboost,newdata=test,n.trees=parmb[i,2]) #Out-of-sample fit
-        olb[i] = sum((exp(test$Salary)-exp(ofit))^2) #Oout-of-sample loss
-        ilb[i] = sum((exp(train$Salary)-exp(ifit))^2) #In-sample loss
+        olb[i] = sum(((test$salaryPercSalaryCap)-(ofit))^2) #Out-of-sample loss
+        ilb[i] = sum(((train$salaryPercSalaryCap)-(ifit))^2) #In-sample loss
         bfitv[[i]]=tempboost #Saving the model
     }
     ilb = round(sqrt(ilb/nrow(train)),3) #Out-of-sample RMSE
     olb = round(sqrt(olb/nrow(test)),3) #In-sample RMSE
-    
+    iib=which.min(olb) #Find minimum oos loss
+    theb = bfitv[[iib]] #Select the model with minimum oos loss
+    thebpred = predict(theb,newdata=test,n.trees=parmb[iib,2]) #Get the prediction for the validation set
+    pred_year = data.frame("Year"=test_Year, "Percentage"=thebpred)
+    actualSal_year = data.frame("Year"=test_Year, "Percentage"=test$salaryPercSalaryCap)
+    #Transform the percentages to actual Salary using the salary cap from each year
+    pred_year=transform(pred_year, Salary=ifelse(Year==2010, Percentage*58044000, 
+                                ifelse(Year==2011, Percentage*58044000,
+                                ifelse(Year==2012, Percentage*58044000,
+                                ifelse(Year==2013, Percentage*58679000,
+                                ifelse(Year==2014, Percentage*63065000,
+                                ifelse(Year==2015, Percentage*70000000,
+                                ifelse(Year==2016, Percentage*94143000, Percentage*99093000))))))))
+    actualSal_year = transform(actualSal_year, Salary=ifelse(Year==2010, Percentage*58044000, 
+                                                      ifelse(Year==2011, Percentage*58044000,
+                                                     ifelse(Year==2012, Percentage*58044000,
+                                                    ifelse(Year==2013, Percentage*58679000,
+                                                    ifelse(Year==2014, Percentage*63065000,
+                                                     ifelse(Year==2015, Percentage*70000000,
+                                                    ifelse(Year==2016, Percentage*94143000, Percentage*99093000))))))))
+    #print(pred_year)
+    #print(actualSal_year)
+    SE=sum(((actualSal_year$Salary)-(pred_year$Salary))^2)
+    RMSE=round(sqrt(SE/nrow(actualSal_year)),3)
+    print(RMSE)
     #Print losses
-    print(cbind(parmb,olb,ilb))
+    #print(cbind(parmb,olb,ilb))
+
+    
     #Results no grouping
     # tdepth ntree   lam     olb        ilb
     # 1      4  1000 0.001 5275090 5085007.13
@@ -92,6 +123,7 @@ Trees <- function(pos_dataset, name){
     # 8     10  5000 0.200 4428822       1.31
     print(name)
 }
+
 Perform_Linear_regression <- function(pos_dataset, name){
     #' @description This function performs a linear regression using
     #' the most relevant variables found by stepwise algorithm
@@ -104,156 +136,55 @@ Perform_Linear_regression <- function(pos_dataset, name){
     set.seed(123)
     n=dim(pos_dataset)[1]
     ind <- sample(1:n,size=n*0.80,replace = FALSE)
-    pos_dataset$Salary = log(pos_dataset$Salary)
     train = pos_dataset[ind,]
     test = pos_dataset[-ind,]
-    
-    model_base <- lm(Salary ~ 1 , data= train)  # base intercept only model
-    model_all <- lm(Salary ~ . , data= train) # full model with all predictors
+    train_Year = train$Year
+    test_Year = test$Year
+    train[,c("Year")] <- list(NULL)
+    test[,c("Year")] <- list(NULL)
+    model_base <- lm(salaryPercSalaryCap~ 1 , data= train)  # base intercept only model
+    model_all <- lm(salaryPercSalaryCap~. , data= train) # full model with all predictors
     stepMod <- step(model_base, scope = list(lower = model_base, upper = model_all), direction = "both", trace = 0, steps = 1000, k=log(length(ind)))  # perform step-wise algorithm
     shortlistedVars <- names(unlist(stepMod[[1]])) # get the shortlisted variable.
     shortlistedVars <- shortlistedVars[!shortlistedVars %in% "(Intercept)"]  # remove intercept
-    myForm <- as.formula(paste("Salary ~ ", paste (shortlistedVars, collapse=" + "), sep=""))
+    myForm <- as.formula(paste("salaryPercSalaryCap ~ ", paste (shortlistedVars, collapse=" + "), sep=""))
     len = length(shortlistedVars)
     model <- lm(myForm,data = train)
     print(summary(model))
     y.hat <- predict(model,newdata = test)
-    MSE <- mean((exp(test$Salary)-exp(y.hat))**2)
-    print(sqrt(MSE))
-    print(name)
+    
+    pred_year = data.frame("Year"=test_Year, "Percentage"=y.hat)
+    actualSal_year = data.frame("Year"=test_Year, "Percentage"=test$salaryPercSalaryCap)
+    #Transform the percentages to actual Salary using the salary cap from each year
+    pred_year=transform(pred_year, Salary=ifelse(Year==2010, Percentage*58044000, 
+                                                 ifelse(Year==2011, Percentage*58044000,
+                                                        ifelse(Year==2012, Percentage*58044000,
+                                                               ifelse(Year==2013, Percentage*58679000,
+                                                                      ifelse(Year==2014, Percentage*63065000,
+                                                                             ifelse(Year==2015, Percentage*70000000,
+                                                                                    ifelse(Year==2016, Percentage*94143000, Percentage*99093000))))))))
+    actualSal_year = transform(actualSal_year, Salary=ifelse(Year==2010, Percentage*58044000, 
+                                                             ifelse(Year==2011, Percentage*58044000,
+                                                                    ifelse(Year==2012, Percentage*58044000,
+                                                                           ifelse(Year==2013, Percentage*58679000,
+                                                                                  ifelse(Year==2014, Percentage*63065000,
+                                                                                         ifelse(Year==2015, Percentage*70000000,
+                                                                                                ifelse(Year==2016, Percentage*94143000, Percentage*99093000))))))))
+    #print(pred_year)
+    #print(actualSal_year)
+    SE=sum(((actualSal_year$Salary)-(pred_year$Salary))^2)
+    RMSE=round(sqrt(SE/nrow(actualSal_year)),3)
+    print(RMSE)
+    
+    # MSE <- mean((exp(test$Salary)-exp(y.hat))**2)
+    # print(sqrt(MSE))
+    # print(name)
 
     
     
 }
 
-Perform_predictions <- function(pos_dataset, kcv, plot_name){
-    #' @description This function performs a knn regression using
-    #' kcv on the different datasets (by position)
-    #'
-    #' 
-    #' @param pos_dataset dataframe
-    #' @param kcv Do cross-fold validation.
-    #' @param plot_name Used to give plot appropriate name
-    
-    #Get rid of salary and pos columns 
-    pos_dataset[,c("Pos")] <- list(NULL)
-    print(summary(pos_dataset$salary))
-    Salary <- log(pos_dataset$salary)
-    pos_dataset[,c("salary")] <- list(NULL)
-    print(summary(Salary))
-    #Normalize data
-    normalize <- function(x) {return ((x - min(x)) / (max(x) - min(x))) }
-    normalized_dataset <- as.data.frame(lapply(pos_dataset[, 1:75], normalize))
-    normalized_dataset=normalized_dataset[colSums(!is.na(normalized_dataset)) > 0]
-    n=dim(pos_dataset)[1]
-    #Set seed to guarantee same results
-    set.seed(123)
-    train = data.frame(Salary,normalized_dataset)
-    test = data.frame(Salary,normalized_dataset)
-    n=dim(normalized_dataset)[1]
 
-    n0 = round(n/kcv,0) #Size of each fold
-    
-    #Different values of neighbors
-    kk <- 1:40
-    
-    #MSE matrix
-    out_MSE = matrix(0,
-                     nrow = kcv, #number of rows
-                     ncol = length(kk)) #number of columns
-    #Vector of indices that have already been used inside the for
-    used = NULL
-    
-    #The set of indices not used (will be updated removing the used)
-    set = 1:n
-    
-    for(j in 1:kcv){
-        
-        if(n0<length(set)){ #If the set of 'not used' is > than the size of the fold
-            val = sample(set, size = n0) #then sample indices from the set
-        }
-        
-        if(n0>=length(set)){ #If the set of 'not used' is <= than the size of the fold
-            val=set #then use all of the remaining indices as the sample
-        }
-        
-        #Create the train and test matrices
-        train_i = train[-val,] #Every observation except the ones whose indices were sampled
-        test_i = test[val,] #The observations whose indices sampled
-        
-        for(i in kk){
-            
-            #The current model
-            near = kknn(Salary~., #The formula
-                        train = train_i, #The train matrix/df
-                        test = test_i, #The test matrix/df
-                        k=i, #Number of neighbors
-                        kernel = "rectangular") #Type of kernel (see help for more)
-            
-            #Calculating the MSE of current model
-            aux = mean((test_i[,1]-near$fitted)^2)
-            
-            #Store the current MSE
-            out_MSE[j,i] = aux
-        }
-        
-        #The union of the indices used currently and previously
-        used = union(used,val)
-        
-        #The set of indices not used is updated
-        set = (1:n)[-used]
-        
-        #Printing on the console the information that you want
-        #Useful to keep track of the progress of your loop
-        cat(j,"folds out of",kcv,'\n')
-    }
-    
-    
-    #Calculate the mean of MSE for each k
-    mMSE = apply(out_MSE, #Receive a matrix
-                 2, #Takes its columns (it would take its rows if this argument was 1)
-                 mean) #And for each column, calculate the mean
-    
-    par(mfrow=c(1,1)) #Redimension plot window to 1 row, 1 column
-
-    #Complexity x RMSE graph
-    plot(log(1/kk),sqrt(mMSE), #the values
-         xlab="Complexity (log(1/k))",
-         ylab="out-of-sample RMSE",
-         main = plot_name,
-         col=4, #Color of line
-         lwd=2, #Line width
-         type="l", #Type of graph = line
-         cex.lab=1.2) #Size of labs
-
-    #Find the index of the minimum value of mMSE
-    best = which.min(mMSE)
-    print(min(sqrt(mMSE[best])))
-
-    #Inclusing text at specific coordinates of the graph
-    text(log(1/kk[best]),sqrt(mMSE[best])+0.01, #Coordinates
-         paste("k=",kk[best]),#The actual text
-         col=2, #Color of the text
-         cex=1.2) #Size of the text
-    text(log(1/40)+.2,sqrt(mMSE[40]),"k=40")
-    text(log(1/1)-0.5,sqrt(mMSE[1])+0.001,"k=1")
-
-    ind <- sample(1:n,size=n*0.85,replace = FALSE)
-    n=dim(normalized_dataset)[1]
-    train = data.frame(Salary,normalized_dataset)
-    test = data.frame(Salary,normalized_dataset)
-    train = train[ind,]
-    test = test[-ind,]
-    near = kknn(Salary~., #The formula
-                train = train, #The train matrix/df
-                test = test, #The test matrix/df
-                k=best, #The number of neighbors
-                kernel = "rectangular") #Type of kernel (see options in the help section)
-
-    #Calculating the MSE for the current model
-    aux = mean((test[,1]-near$fitted)^2)
-    
-}
 cleanPlayerSalary <- function(player_csv){
     #' @description This function subsets the dataframe by position
     #' and calls other function to perform the predictions
@@ -265,19 +196,13 @@ cleanPlayerSalary <- function(player_csv){
     #Hot one-encoding for Team
     #player_csv <- dummy_cols(player_csv, select_columns = 'Tm', remove_first_dummy = TRUE)
     #Drop the text and duplicate columns
-    player_csv[,c("X", "player_id", "COLID", "Tm", "firstName", "lastName", "player_Year", "league", "season", "season_end", "season_start", "Year", "Player", "team")] <- list(NULL)
+    player_csv[,c("X", "player_id", "COLID", "Tm", "firstName", "lastName", "player_Year", "league", "season", "season_end", "season_start", "Player", "team", "Salary")] <- list(NULL)
     #Subset the dataframe by position
     SG_dataset  <- subset(player_csv, Pos == "SG")
     C_dataset  <- subset(player_csv, Pos == "C")
     PF_dataset  <- subset(player_csv, Pos == "PF")
     SF_dataset  <- subset(player_csv, Pos == "SF")
     PG_dataset  <- subset(player_csv, Pos == "PG")
-    #Perform knn regression
-    # Perform_predictions(SG_dataset, 5, "Shooting Guard knn")
-    # Perform_predictions(C_dataset, 5, "Center knn")
-    # Perform_predictions(PF_dataset, 5, "Power Forward knn")
-    # Perform_predictions(SF_dataset, 5, "Small Forward knn")
-    # Perform_predictions(PG_dataset, 5, "Point Guard knn")
     # #Perform linear regression
     Perform_Linear_regression(player_csv, "Overall")
     Perform_Linear_regression(SG_dataset, "Shooting Guard")
@@ -285,13 +210,33 @@ cleanPlayerSalary <- function(player_csv){
     Perform_Linear_regression(PF_dataset, "Power Forward")
     Perform_Linear_regression(SF_dataset, "Small Forward")
     Perform_Linear_regression(PG_dataset, "Point Guard")
-    #Trees(player_csv, "Overall")
-    Trees(SG_dataset, "Shooting Guard")
-    Trees(C_dataset, "Center")
-    Trees(PF_dataset, "Power Forward")
-    Trees(SF_dataset, "Small Forward")
-    Trees(PG_dataset, "Point Guard")
+    # Trees(player_csv, "Overall")
+    # Trees(SG_dataset, "Shooting Guard")
+    # Trees(C_dataset, "Center")
+    # Trees(PF_dataset, "Power Forward")
+    # Trees(SF_dataset, "Small Forward")
+    # Trees(PG_dataset, "Point Guard")
     
+    #RMSE CALCULATED USING SALARY CAP PERCENTAGES - OUT OF SAMPLE - Boosting Trees
+    # 2852859 - "No Grouping"
+    # 3257454 - "Shooting Guard"
+    # 3885828 - "Center"
+    # 2139504 - "Power Forward"
+    # 3506058 - "Small Forward"
+    # 2909815 - "Point Guard"
+    
+    #RMSE CALCULATED USING SALARY CAP PERCENTAGES - OUT OF SAMPLE - Multi Linear Regression
+    # 3060917 - "No Grouping"
+    # 3582381 - "Shooting Guard"
+    # 4042490 - "Center"
+    # 2285300 - "Power Forward"
+    # 3576691 - "Small Forward"
+    # 2621779 - "Point Guard"
+    
+    
+    
+    
+    #RMSE CALCULATED USING SALARY COLUMN
     #RSME for different models
     #Trees Result (Point Guard Boosting)
     #tdepth ntree   lam     olb         ilb
@@ -380,9 +325,6 @@ cleanPlayerSalary <- function(player_csv){
     # 2    7   100 4378622 4542887
     # 3   47   500 4255561 4377670
     # 4    7   500 4339349 4500589
-    
-    
-
 
     return (player_csv)
 }

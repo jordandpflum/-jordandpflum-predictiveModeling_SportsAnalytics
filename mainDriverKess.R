@@ -68,11 +68,11 @@ edit <- cbind(xDF,pos.1)[,-c(1)]
 
 # Create data frame (for easier use)
 
-t.dta <- cbind(edit,completeDataframe$salaryPercSalaryCap)
+t.dta <- cbind(edit,yDF)
 colnames(t.dta)[length(colnames(t.dta))] = "salary"
 
 
-set.seed(50)
+set.seed(40)
 tr <- sample(1:nrow(edit),2400)
 
 train <- t.dta[tr,]
@@ -82,12 +82,12 @@ model <- lm(salary~.,data = train)
 steps <- stepAIC(model,direction = "both",k = log(nrow(t.dta)))
 
 summary(steps)
-# adj r of .534
+# adj r of .5453
 
 y.hat <- predict(steps,newdata = test)
 MSE.BIC <- mean((test$salary-y.hat)**2)
 sqrt(MSE.BIC)
-# RMSE of .03898 perc salary cap
+# RMSE of 3.8 mil
 
 
 # LASSO
@@ -99,7 +99,8 @@ tr.s <- scaled[tr,]
 t.s <- scaled[-tr,]
 lasso.model <- cv.glmnet(tr.s[,-c(58)],tr.s[,c(58)],alpha = 1 )
 sqrt(lasso.model$cvm[lasso.model$lambda == lasso.model$lambda.1se])
-#.040 perc salary cap
+# 3.97 mil
+
 
 # Plot lambdas
 plot(log(lasso.model$lambda),sqrt(lasso.model$cvm),
@@ -114,7 +115,8 @@ coefs.lasso
 
 ridge.model <- cv.glmnet(tr.s[,-c(58)],tr.s[,c(58)],alpha = 0)
 sqrt(ridge.model$cvm[ridge.model$lambda == ridge.model$lambda.1se])
-# .04063
+#3.98 mil
+
 
 plot(log(ridge.model$lambda),sqrt(ridge.model$cvm),
      main="LASSO CV (k=10)",xlab="log(lambda)",
@@ -126,9 +128,9 @@ coefs.ridge
 
 # Remove all the variables
 
-#rm(list = c("edit","lasso.model","model.1","pos","MSE.BIC","posC",
-#            "scaled","ridge.model","scaled.tr","t.s","t.dta","tr",
-#            "train","y.hat","test","pos.1","steps","tr.s","model"))
+rm(list = c("edit","lasso.model","model.1","pos","MSE.BIC","posC",
+            "scaled","ridge.model","scaled.tr","t.s","t.dta","tr",
+            "train","y.hat","test","pos.1","steps","tr.s","model"))
 
 
 
@@ -139,24 +141,75 @@ player_csv <- cleanPlayerSalary(completeDataframe)
 
 
 
-# Analysis
+# Exploratory Data Analysis
+library(ggplot2)
+library(plyr)
+
+lildata <- ddply(completeDataframe, "Pos", summarise, grp.mean=mean(Age))
+#make density plot 
+ggplot(completeDataframe, aes(x=Age, color=Pos)) +
+  geom_density()
+# Add mean lines
+p<-ggplot(completeDataframe, aes(x=Age, color=Pos)) +
+  geom_density()+
+  geom_vline(data=lildata, aes(xintercept=grp.mean, color=Pos),
+             linetype="dashed")
+p
+
+
+#side by side histogram by team
+max(completeDataframe$Salary)
+maxindex<- which.max(completeDataframe$salaryPercSalaryCap) 
+
+
+
+sidebyside <- function(data, team1, team2){
+  #someteams <- completeDataframe[which(completeDataframe$Tm==team1),]
+  #otherteams <- completeDataframe[which(completeDataframe$Tm==team2),]  
+  #both <- rbind(someteams,otherteams)
+  
+  top5sal<- top_n(data, 20, Salary)  
+  
+  bothgroups<- ggplot(data=top5sal, aes(x=Tm, y=Salary, fill=Pos)) +
+    geom_bar(stat="identity", position=position_dodge()) +
+      ggtitle("Comparison of Salary by Team and Position")
+  bothgroups
+}
+sidebyside(completeDataframe, 'MIA', 'HOU')#practice
+
+teams<- c(unique(completeDataframe$Tm))
+avgsal <- data.frame(Doubles=double(),
+                       Ints=integer(),
+                       Factors=factor(),
+                       Logicals=logical(),
+                       Characters=character(),
+                       stringsAsFactors=FALSE)
+for (x in 1:length(teams)){
+  teamx <- rbind(completeDataframe[which(completeDataframe$Tm==teams[x]),])
+  avg <- mean(teamx$Salary)
+  avgsal[x,]<- data.frame("Tm" =teams[x], "AvgSal" = avg)
+}
+
+#THIS WORKS-----------------DENSITY PLOT WITH MEAN LINES------------------
+#Parameters 
+#df - dataframe
+#xaxis - column of data frame that is categories for x axis boxes
+#yaxis - column of data frame that is count for y axis
+# labelstr - string value for the y axis label 
+barchart <- function(df, xaxis, yaxis){
+  attach(df)
+  labelstr <- max(df$yaxis)
+  bar<-ggplot(data=df, aes(x=xaxis, y=yaxis)) +
+    geom_bar(stat="identity", fill="steelblue")+
+    theme_minimal()
+  bar
+}
+barchart(completeDataframe, Pos, FGA)
+
 # Accuracy
 
 # Significant Variable Analysis
 
 # Case Study
 
-case <- data.frame(rbind(c(28,70,70,6.2,513,140,9.3,1026,900,6,24,1.2,30.6,11,3.5,.9,6.4,0)))
-colnames(case) <- c("Age","G","GS","AST","TRB","TOV","FGA","X2P","X2PA","FTA","AST_perc","STL_perc","USG_perc","OWS","DWS","DBPM","VORP","posPG")
-# Kevin Durant's real salary in 2017 was 25000000
-y.hat <- predict(steps,newdata = case)
-#y.hat <- y.hat * 99093000 #convert back to salary
-e <- y.hat - 0.2522883
-e
-
-case <- rbind(case,c(28,75,75,9.1,614,303,1344,612,1002,531,41.3,1.8,30,9.8,3,1.6,7.3,0))
-y.hat <- predict(steps,newdata = case[2,])
-#Lebron got paid 33285709 in 2017
-e <- y.hat - .3359037
-e
 
