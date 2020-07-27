@@ -6,12 +6,9 @@ library(nnet)
 library(randomForest)
 library(gbm)
 
-player_2017_salary_metrics<-read.csv("2017_player_salary_and_metrics.csv", stringsAsFactors = FALSE)
-
 MultipleLinearRMSE = c()
 RandomForestRMSE = c()
 BoostingRMSE = c()
-
 Trees <- function(pos_dataset, name){
     pos_dataset[,c("Pos")] <- list(NULL)
     # print(summary(pos_dataset$salaryPercSalaryCap))
@@ -55,7 +52,8 @@ Trees <- function(pos_dataset, name){
     iirf=which.min(olrf) #Find minimum oos loss
     therf = rffitv[[iirf]] #Get model which correspond to the minimum out-sample loss
     therfpred=predict(therf,newdata=test)
-
+    #plot variable importance
+    varImpPlot(therf, main=paste(name," Random Forest", sep="", collapse = ""))
     pred_year = data.frame("Year"=test_Year, "Percentage"=therfpred)
     actualSal_year = data.frame("Year"=test_Year, "Percentage"=test$salaryPercSalaryCap)
     #Transform the percentages to actual Salary using the salary cap from each year
@@ -84,6 +82,8 @@ Trees <- function(pos_dataset, name){
     RandomForestRMSE <<- c(RandomForestRMSE, RMSE)
     #Print losses
     # print(cbind(parmrf,ilrf, olrf))
+    
+    
     
     # #Boosting trees
     idv = c(4,10) #tree depth
@@ -116,7 +116,11 @@ Trees <- function(pos_dataset, name){
     olb = round(sqrt(olb/nrow(test)),3) #In-sample RMSE
     iib=which.min(olb) #Find minimum oos loss
     theb = bfitv[[iib]] #Select the model with minimum oos loss
+    modelSummary=summary(theb,plotit=FALSE) #This will have the variable importance info
+    #plot variable importance
+    plot(rel.inf~factor(var), modelSummary, main=paste(name," Boosting", sep="", collapse = "")) 
     thebpred = predict(theb,newdata=test,n.trees=parmb[iib,2])
+
     pred_year = data.frame("Year"=test_Year, "Percentage"=thebpred)
     actualSal_year = data.frame("Year"=test_Year, "Percentage"=test$salaryPercSalaryCap)
     #Transform the percentages to actual Salary using the salary cap from each year
@@ -145,7 +149,6 @@ Trees <- function(pos_dataset, name){
     #Print losses
     #print(cbind(parmb,olb,ilb))
 
-    #print(name)
 }
 
 Perform_Linear_regression <- function(pos_dataset, name){
@@ -202,9 +205,6 @@ Perform_Linear_regression <- function(pos_dataset, name){
     print(RMSE)
     MultipleLinearRMSE <<- c(MultipleLinearRMSE, RMSE)
     
-    
-    # MSE <- mean((exp(test$Salary)-exp(y.hat))**2)
-    # print(sqrt(MSE))
     print(name)
 
     
@@ -230,13 +230,16 @@ cleanPlayerSalary <- function(player_csv){
     PF_dataset  <- subset(player_csv, Pos == "PF")
     SF_dataset  <- subset(player_csv, Pos == "SF")
     PG_dataset  <- subset(player_csv, Pos == "PG")
-    # #Perform linear regression
+    
+     # #Perform linear regression
     Perform_Linear_regression(player_csv, "Overall")
     Perform_Linear_regression(SG_dataset, "Shooting Guard")
     Perform_Linear_regression(C_dataset, "Center")
     Perform_Linear_regression(PF_dataset, "Power Forward")
     Perform_Linear_regression(SF_dataset, "Small Forward")
     Perform_Linear_regression(PG_dataset, "Point Guard")
+    
+    
     #Perform Random Forest and Boosting
     Trees(player_csv, "Overall")
     Trees(SG_dataset, "Shooting Guard")
@@ -244,23 +247,23 @@ cleanPlayerSalary <- function(player_csv){
     Trees(PF_dataset, "Power Forward")
     Trees(SF_dataset, "Small Forward")
     Trees(PG_dataset, "Point Guard")
-    
+
     # print(MultipleLinearRMSE)
     # print(RandomForestRMSE)
     # print(BoostingRMSE)
-    
+
     #Plot the RMSE for each model
     barplot(MultipleLinearRMSE, main = "Multiple Linear Regression RMSE of Predicted Salaries",
             xlab = "Position",
-            ylab = "Salary", 
+            ylab = "Salary",
             names.arg=c("Overall", "SG", "C", "PF", "SF", "PG"), col = "darkred")
     barplot(RandomForestRMSE, main = "Random Forest RMSE of Predicted Salaries",
             xlab = "Position",
-            ylab = "Salary", 
+            ylab = "Salary",
             names.arg=c("Overall", "SG", "C", "PF", "SF", "PG"), col = "darkred")
     barplot(BoostingRMSE, main = "Boosting RMSE of Predicted Salaries",
             xlab = "Position",
-            ylab = "Salary", 
+            ylab = "Salary",
             names.arg=c("Overall", "SG", "C", "PF", "SF", "PG"), col = "darkred")
     #RMSE CALCULATED USING SALARY CAP PERCENTAGES - OUT OF SAMPLE - Boosting Trees
     # 2852859 - "No Grouping"

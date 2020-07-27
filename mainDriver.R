@@ -77,17 +77,20 @@ tr <- sample(1:nrow(edit),2400)
 
 train <- t.dta[tr,]
 test <- t.dta[-tr,]
-
-model <- lm(salary~.,data = train)
-steps <- stepAIC(model,direction = "both",k = log(nrow(t.dta)))
-
-summary(steps)
-# adj r of .534
-
-y.hat <- predict(steps,newdata = test)
+model_base <- lm(salary~ 1 , data= train)  # base intercept only model
+model_all <- lm(salary~. , data= train) # full model with all predictors
+stepMod <- step(model_base, scope = list(lower = model_base, upper = model_all), direction = "both", trace = 0, steps = 1000, k=log(length(tr)))  # perform step-wise algorithm
+shortlistedVars <- names(unlist(stepMod[[1]])) # get the shortlisted variable.
+shortlistedVars <- shortlistedVars[!shortlistedVars %in% "(Intercept)"]  # remove intercept
+myForm <- as.formula(paste("salary ~ ", paste (shortlistedVars, collapse=" + "), sep=""))
+len = length(shortlistedVars)
+model <- lm(myForm,data = train)
+summary(model)
+#Adj r2 0.537
+y.hat <- predict(model,newdata = test)
 MSE.BIC <- mean((test$salary-y.hat)**2)
 sqrt(MSE.BIC)
-# RMSE of .03898 perc salary cap
+# RMSE of .03932 perc salary cap
 
 
 # LASSO
@@ -134,10 +137,7 @@ coefs.ridge
 
 # Prediction
 source("Prediction/predictions_based_on_position.R")
-
 player_csv <- cleanPlayerSalary(completeDataframe)
-
-
 
 # Analysis
 # Accuracy
