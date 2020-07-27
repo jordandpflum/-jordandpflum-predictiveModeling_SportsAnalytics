@@ -98,8 +98,12 @@ scaled <- cbind(scaled,t.dta$salary)
 tr.s <- scaled[tr,]
 t.s <- scaled[-tr,]
 lasso.model <- cv.glmnet(tr.s[,-c(58)],tr.s[,c(58)],alpha = 1 )
+
 sqrt(lasso.model$cvm[lasso.model$lambda == lasso.model$lambda.1se])
 #.040 perc salary cap
+
+i <- which(lasso.model$lambda == lasso.model$lambda.1se)
+lasso.model$glmnet.fit$dev.ratio[i]
 
 # Plot lambdas
 plot(log(lasso.model$lambda),sqrt(lasso.model$cvm),
