@@ -39,7 +39,7 @@ xDF = createParitalDataframe(df = completeDataframe, colNames = variables)
 colnames(xDF) <- variables
 
 # Create Y-DF
-variables = c("salaryPercSalaryCap")
+variables = c("Salary")
 yDF = createParitalDataframe(df = completeDataframe, colNames = variables)
 
 
@@ -86,8 +86,8 @@ summary(steps)
 y.hat <- predict(steps,newdata = test)
 MSE.BIC <- mean((test$salary-y.hat)**2)
 sqrt(MSE.BIC)
-
 # RMSE of 3.8 mil
+
 
 # Prediction
 source("Prediction/predictions_based_on_position.R")
