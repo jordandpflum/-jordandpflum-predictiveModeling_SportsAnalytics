@@ -23,7 +23,7 @@ Trees <- function(pos_dataset, name){
     test[,c("Year")] <- list(NULL)
     p=ncol(train)-1 #Number of covariates (-1 because one column is the response)
     mtryv = c(p,round(sqrt(p))) #Number of candidate variables for each split
-    ntreev = c(100,500) #Number of trees
+    ntreev = c(100,500,1000) #Number of trees
     parmrf = expand.grid(mtryv,ntreev) #Expanding grids of different models
     colnames(parmrf)=c('mtry','ntree')
     # print(parmrf)
@@ -88,7 +88,7 @@ Trees <- function(pos_dataset, name){
     # #Boosting trees
     idv = c(4,10) #tree depth
     ntv = c(1000,5000) #number of trees
-    lamv=c(.001,.2) #Learning rates
+    lamv=c(.001,.01,.2) #Learning rates
     parmb = expand.grid(idv,ntv,lamv) #Expand the values to get different models
     colnames(parmb) = c('tdepth','ntree','lam')
     # print(parmb)
@@ -118,6 +118,7 @@ Trees <- function(pos_dataset, name){
     theb = bfitv[[iib]] #Select the model with minimum oos loss
     modelSummary=summary(theb,plotit=FALSE) #This will have the variable importance info
     #plot variable importance
+    print(modelSummary)
     plot(rel.inf~factor(var), modelSummary, main=paste(name," Boosting", sep="", collapse = "")) 
     thebpred = predict(theb,newdata=test,n.trees=parmb[iib,2])
 
