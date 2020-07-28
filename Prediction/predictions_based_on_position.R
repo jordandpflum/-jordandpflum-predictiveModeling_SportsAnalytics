@@ -153,7 +153,7 @@ Trees <- function(pos_dataset, name){
 
 }
 
-Perform_Linear_regression <- function(pos_dataset, name){
+Perform_Linear_regression <- function(pos_dataset, name,perc = FALSE){
     #' @description This function performs a linear regression using
     #' the most relevant variables found by stepwise algorithm
     #' on the different datasets provided 
@@ -161,6 +161,7 @@ Perform_Linear_regression <- function(pos_dataset, name){
     #' 
     #' @param pos_dataset dataframe. 
     #' @param name Identification for dataset
+    #' @param perc Print RMSE in terms of % salary cap from step-wise model
     pos_dataset[,c("Pos")] <- list(NULL)
     set.seed(123)
     n=dim(pos_dataset)[1]
@@ -181,7 +182,10 @@ Perform_Linear_regression <- function(pos_dataset, name){
     model <- lm(myForm,data = train)
     print(summary(model))
     y.hat <- predict(model,newdata = test)
-    
+    if (perc == TRUE){
+        mse <- sqrt(mean((test$salaryPercSalaryCap - y.hat)**2))
+        print(mse)
+    }
     pred_year = data.frame("Year"=test_Year, "Percentage"=y.hat)
     actualSal_year = data.frame("Year"=test_Year, "Percentage"=test$salaryPercSalaryCap)
     #Transform the percentages to actual Salary using the salary cap from each year

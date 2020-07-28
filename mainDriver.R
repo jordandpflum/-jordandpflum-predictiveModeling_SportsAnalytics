@@ -51,21 +51,12 @@ plot(range(length((yDF))),yDF)
 
 # Variable Selection
 source("Prediction/predictions_based_on_position.R")
-
-# Group (position)
-
-# Group (etc.)
-
-# Create data frame (for easier use)
-
 player_csv <- completeDataframe
 player_csv[,c( "Tm", "Player", "Salary")] <- list(NULL)
 
 
-Perform_Linear_regression(player_csv,"Overall")
+Perform_Linear_regression(player_csv,"Overall", perc = TRUE)
 
-
-# Variable Selection
 source("VariableSelection/variable_selectionfunction.R")
 
 Perform_penaltyreg(player_csv,a = 1)
